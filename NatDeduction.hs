@@ -50,10 +50,10 @@
     readFormula ('@':xs) = let (term, rest) = break (== ':') xs in Quan All (readTerm term) (readFormula (tail rest))
     readFormula ('#':xs) = let (term, rest) = break (== ':') xs in Quan Exists (readTerm term) (readFormula (tail rest))
     readFormula ('(':xs) = findConnective 0 "" (init xs)
-        where   findConnective 0 s (_:'&':_:xs) = Bin And (readFormula s) (readFormula xs)
-                findConnective 0 s (_:'|':_:xs) = Bin Or (readFormula s) (readFormula xs)
-                findConnective 0 s (_:'-':'>':_:xs) = Bin If (readFormula s) (readFormula xs)
-                findConnective 0 s (_:'<':'-':'>':_:xs) = Bin Iff (readFormula s) (readFormula xs)
+        where   findConnective 0 s (' ':'&':' ':xs) = Bin And (readFormula s) (readFormula xs)
+                findConnective 0 s (' ':'|':' ':xs) = Bin Or (readFormula s) (readFormula xs)
+                findConnective 0 s (' ':'-':'>':' ':xs) = Bin If (readFormula s) (readFormula xs)
+                findConnective 0 s (' ':'<':'-':'>':' ':xs) = Bin Iff (readFormula s) (readFormula xs)
                 findConnective n s ('(':xs) = findConnective (n+1) (s ++ "(") xs
                 findConnective n s (')':xs) = findConnective (n-1) (s ++ ")") xs
                 findConnective _ _ [] = Atom (Prop "Parse error")
