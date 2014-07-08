@@ -31,10 +31,18 @@
         putStr "> "
         hFlush stdout
         line <- getLine
-        let cmd = takeWhile (/= ' ') line
-        let deductions = (fromJust $ Map.lookup cmd commands) deds line
-        putStrLn $ unlines $ enumerate $ map show deductions
-        getCommand deductions
+        let cmd = getArg line 0
+        if Map.member cmd commands
+            then do
+                let deductions = (fromJust $ Map.lookup cmd commands) deds line
+                putStrLn $ unlines $ enumerate $ map show deductions
+                getCommand deductions
+            else do
+                if cmd == "print"
+                    then do
+                        putStrLn $ dedTree $ deds!!(read $ getArg line 1)
+                        getCommand deds
+                    else getCommand deds
     
     enumerate :: [String] -> [String]
     enumerate xs = map enum $ zip [0..(length xs)] xs
@@ -119,3 +127,13 @@
     dedTerm func deds cmd = (deleteAt a $ deds) ++ [func (deds!!a) formula]
         where   a = read $ getArg cmd 1
                 formula = readTerm $ lastArg cmd 2
+
+    dedTree :: Deduction -> String
+    dedTree d = printTree $ reverse $ bwsInStack [(0,d)]
+        where   bwsInStack ((n, Ded parents a):ds) = 
+                    (n,a):(bwsInStack $ ds ++ (reverse $ map (giveLvl $ n+1) parents))
+                bwsInStack [] = []
+                giveLvl n d = (n,d)
+                printTree ((x,a):(y,b):xs) = (show a) ++ bool ++ printTree ((y,b):xs)
+                    where bool = if x == y then "   " else "\n"
+                printTree ((x,a):[]) = show a
