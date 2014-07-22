@@ -40,7 +40,7 @@
             else do
                 if cmd == "print"
                     then do
-                        putStrLn $ dedTree $ deds!!(read $ getArg line 1)
+                        --putStrLn $ dedTree $ deds!!(read $ getArg line 1)
                         getCommand deds
                     else getCommand deds
     
@@ -128,13 +128,19 @@
         where   a = read $ getArg cmd 1
                 formula = readTerm $ lastArg cmd 2
 
-    dedTree :: Deduction -> String
-    dedTree d = show $ map foo $ reverse $ bwsInStack [(0,d)]
-        where   bwsInStack ((n, Ded parents a):ds) = 
-                    (n, Ded parents a):(bwsInStack $ ds ++ (reverse $ map (giveLvl $ n+1) parents))
-                bwsInStack [] = []
-                giveLvl n d = (n,d)
+    data PrintedTree = Null | Tree Int Int Formula PrintedTree [PrintedTree] deriving (Show)
+	
+    --dedTree :: Deduction -> String
+    --dedTree d = show $ map foo $ reverse $ bwsInStack [(0,0,d)]
+    --    where   bwsInStack ((x, y, Ded parents a):ds) = 
+      --              (x, y, Ded parents a):(bwsInStack $ ds ++ (reverse $ map (nextLvl x y) parents))
+        --        bwsInStack [] = []
+          --      giveLvl x y d = (x,(y+1),d)
                 --printTree ((x,Ded _ a):(y,Ded ds b):xs) = (show a) ++ bool ++ printTree ((y,Ded ds b):xs)
                 --    where bool = if x == y then "   " else "\n"
                 --printTree ((x,Ded _ a):[]) = show a
-                foo (n, Ded _ a) = (n,a)
+            --    foo (n, Ded _ a) = (n,a)
+    
+    initTree :: PrintedTree -> Deduction -> PrintedTree
+    initTree prev (Ded ds a) = this
+		where this = Tree 0 0 a prev (map (initTree (Tree 0 0 a prev )) ds)
