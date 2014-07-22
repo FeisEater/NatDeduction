@@ -1,4 +1,4 @@
-    module Main where
+    module Mainn where
     
     import NatDeduction
     import Data.List
@@ -6,9 +6,9 @@
     import qualified Data.Map as Map
     import System.IO
     
-    main = do
-        putStrLn "Natural deduction simulator 2014"
-        getCommand []
+    --main = do
+    --    putStrLn "Natural deduction simulator 2014"
+    --    getCommand []
 
     commands = Map.fromList [   ("assume", addAssumption),
                                 ("forget", removeDed),
@@ -128,8 +128,8 @@
         where   a = read $ getArg cmd 1
                 formula = readTerm $ lastArg cmd 2
 
-    data PrintedTree = Null | Tree Int Int Formula PrintedTree [PrintedTree] deriving (Show)
-	
+    data PrintDed = PrintDed Int Int String [PrintDed] deriving (Show)
+    	
     --dedTree :: Deduction -> String
     --dedTree d = show $ map foo $ reverse $ bwsInStack [(0,0,d)]
     --    where   bwsInStack ((x, y, Ded parents a):ds) = 
@@ -141,6 +141,28 @@
                 --printTree ((x,Ded _ a):[]) = show a
             --    foo (n, Ded _ a) = (n,a)
     
-    initTree :: PrintedTree -> Deduction -> PrintedTree
-    initTree prev (Ded ds a) = this
-		where this = Tree 0 0 a prev (map (initTree (Tree 0 0 a prev )) ds)
+    initTree :: Deduction -> PrintDed
+    initTree (Ded ds a) = PrintDed 0 0 (show a) (map initTree ds)
+    
+    bwsInStack :: [PrintDed] -> [PrintDed]
+    bwsInStack ((PrintDed x y s parents):ds) = d:(bwsInStack $ ds ++ (reverse $ map depth parents))
+        where   d = PrintDed x y s parents
+                depth (PrintDed _ _ s ds) = PrintDed x (y+1) s ds
+    bwsInStack [] = []
+
+    spaceOut :: Bool -> [PrintDed] -> [PrintDed]
+    spaceOut b ((PrintDed x y s a):ds) =    if isNextLvl y ds then
+                                                (PrintDed (x + off) y s a):(spaceOut False ds)
+                                            else (PrintDed (x + off) y s a):(spaceOut True ds)
+        where off = if b then 3 else 0
+    spaceOut _ [] = []
+    
+    printDeds :: [PrintDed] -> String
+    printDeds ((PrintDed x y s _):ds)
+            = (replicate x ' ') ++ s ++ bool ++ (printDeds ds)
+        where bool = if isNextLvl y ds then "\n" else ""
+    printDeds [] = ""
+
+    isNextLvl :: Int -> [PrintDed] -> Bool
+    isNextLvl y1 ((PrintDed _ y2 _ _):_) = y1 /= y2
+    isNextLvl _ [] = False
