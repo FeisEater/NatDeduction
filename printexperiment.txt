@@ -15,3 +15,10 @@ ______________________ i-2          ______________________ i-4
             (a | -a)                             (a | -a)
             _____________________________________________ i&
                         ((a | -a) & (a | -a))
+                        
+1. align top deds with bottom ded
+2. align top ded with bottom ded
+3. align bottom right ded with top right ded
+4. align bottom ded with re-aligned top deds
+5. align bottom ded with re-aligned top deds
+6. align bottom ded with re-aligned top deds

@@ -129,11 +129,12 @@
                 formula = readTerm $ lastArg cmd 2
 
     dedTree :: Deduction -> String
-    dedTree d = printTree $ reverse $ bwsInStack [(0,d)]
+    dedTree d = show $ map foo $ reverse $ bwsInStack [(0,d)]
         where   bwsInStack ((n, Ded parents a):ds) = 
                     (n, Ded parents a):(bwsInStack $ ds ++ (reverse $ map (giveLvl $ n+1) parents))
                 bwsInStack [] = []
                 giveLvl n d = (n,d)
-                printTree ((x,Ded _ a):(y,Ded ds b):xs) = (show a) ++ bool ++ printTree ((y,Ded ds b):xs)
-                    where bool = if x == y then "   " else "\n"
-                printTree ((x,Ded _ a):[]) = show a
+                --printTree ((x,Ded _ a):(y,Ded ds b):xs) = (show a) ++ bool ++ printTree ((y,Ded ds b):xs)
+                --    where bool = if x == y then "   " else "\n"
+                --printTree ((x,Ded _ a):[]) = show a
+                foo (n, Ded _ a) = (n,a)
