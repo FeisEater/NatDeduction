@@ -128,7 +128,7 @@
         where   a = read $ getArg cmd 1
                 formula = readTerm $ lastArg cmd 2
 
-    data PrintDed = PrintDed Int Int String [PrintDed] deriving (Show)
+    data PrintDed = PrintDed Int Int String [Int] deriving (Show)
     	
     --dedTree :: Deduction -> String
     --dedTree d = show $ map foo $ reverse $ bwsInStack [(0,0,d)]
@@ -141,14 +141,15 @@
                 --printTree ((x,Ded _ a):[]) = show a
             --    foo (n, Ded _ a) = (n,a)
     
-    initTree :: Deduction -> PrintDed
-    initTree (Ded ds a) = PrintDed 0 0 (show a) (map initTree ds)
+    --initTree :: Deduction -> PrintDed
+    --initTree (Ded ds a) = PrintDed 0 0 (show a) (map initTree ds)
     
-    bwsInStack :: [PrintDed] -> [PrintDed]
-    bwsInStack ((PrintDed x y s parents):ds) = d:(bwsInStack $ ds ++ (reverse $ map depth parents))
-        where   d = PrintDed x y s parents
-                depth (PrintDed _ _ s ds) = PrintDed x (y+1) s ds
-    bwsInStack [] = []
+    bwsInStack :: [Deduction] -> Int -> Int -> [PrintDed]
+    bwsInStack ((Ded parents a):ds) y i = d:((bwsInStack ds y (i+1)) ++ (bwsInStack (reverse parents) (y+1) (i+(length ds)+1)))
+        where   d = let begin = i + (length ds) + 1
+                        end = begin + ((length parents) - 1)
+                    in  PrintDed 0 y (show a) [begin..end]
+    bwsInStack [] _ _ = []
 
     spaceOut :: Bool -> [PrintDed] -> [PrintDed]
     spaceOut b ((PrintDed x y s a):ds) =    if isNextLvl y ds then
@@ -157,9 +158,13 @@
         where off = if b then 3 else 0
     spaceOut _ [] = []
     
+    --alignParent :: PrintDed -> [PrintDed]
+    --alignParent PrintDed x y s [] = [PrintDed x y s []]
+    --alignParent PrintDed x y s ds = 
+    
     printDeds :: [PrintDed] -> String
-    printDeds ((PrintDed x y s _):ds)
-            = (replicate x ' ') ++ s ++ bool ++ (printDeds ds)
+    printDeds ((PrintDed x y s a):ds)
+            = (replicate x ' ') ++ s ++ (show a) ++ bool ++ (printDeds ds)
         where bool = if isNextLvl y ds then "\n" else ""
     printDeds [] = ""
 
