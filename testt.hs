@@ -16,4 +16,4 @@
     
     superavna = intrAnd avna avna
     
-    printt d = putStrLn $ printDeds $ spaceOut False $ reverse $ bwsInStack [d] 0 0
+    printt d = putStrLn $ printDeds $ spaceOut False $ reverse $ bwsInStack d

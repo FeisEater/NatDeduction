@@ -144,12 +144,15 @@
     --initTree :: Deduction -> PrintDed
     --initTree (Ded ds a) = PrintDed 0 0 (show a) (map initTree ds)
     
-    bwsInStack :: [Deduction] -> Int -> Int -> [PrintDed]
-    bwsInStack ((Ded parents a):ds) y i = d:((bwsInStack ds y (i+1)) ++ (bwsInStack (reverse parents) (y+1) (i+(length ds)+1)))
+    bwsInStack :: Deduction -> [PrintDed]
+    bwsInStack d = help [d] 0 0 (getDiscarded d)
+    help ((Ded parents a):ds) y i disc = d:((help ds y (i+1) disc) ++ (help (reverse parents) (y+1) (i+(length ds)+1) disc))
         where   d = let begin = i + (length ds) + 1
                         end = begin + ((length parents) - 1)
-                    in  PrintDed 0 y (show a) [begin..end]
-    bwsInStack [] _ _ = []
+                    in  PrintDed 0 y form [begin..end]
+                        where form = if elem a disc then '[' : (show a) ++ "]" ++ (show ((fromJust (elemIndex a disc)) + 1))
+                                                    else show a
+    help [] _ _ _ = []
 
     spaceOut :: Bool -> [PrintDed] -> [PrintDed]
     spaceOut b ((PrintDed x y s a):ds) =    if isNextLvl y ds then
@@ -164,7 +167,7 @@
     
     printDeds :: [PrintDed] -> String
     printDeds ((PrintDed x y s a):ds)
-            = (replicate x ' ') ++ s ++ (show a) ++ bool ++ (printDeds ds)
+            = (replicate x ' ') ++ s ++ bool ++ (printDeds ds)
         where bool = if isNextLvl y ds then "\n" else ""
     printDeds [] = ""
 

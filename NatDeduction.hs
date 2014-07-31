@@ -193,29 +193,33 @@
                 findTerm1 _ _ y = y
     
     getAssumptions :: Deduction -> [Formula]
-    getAssumptions d = assum d []
-        where   assum (Ded [] a) disc = if elem a disc then [] else [a]
-                assum (Ded [Ded ds1 (Bin Or a b), Ded ds2 c1, Ded ds3 c2] c3) disc =
-                        (assum (Ded ds1 (Bin Or a b)) disc) `union`
-                        (assum (Ded ds2 c1) (if bool then a:disc else disc)) `union`
-                        (assum (Ded ds3 c2) (if bool then b:disc else disc))
-                    where bool = c1 == c2 && c2 == c3
-                assum (Ded [Ded ds a] (Not b)) disc =
-                    assum (Ded ds a) (if contradiction a then b:disc else disc)
-                assum (Ded [Ded ds b1] (Bin If a b2)) disc =
-                    assum (Ded ds b1) (if b1 == b2 then a:disc else disc)
-                assum (Ded [Ded ds1 a1, Ded ds2 b1] (Bin Iff a2 b2)) disc =
-                        (assum (Ded ds1 a1) (if bool then b1:disc else disc)) `union`
-                        (assum (Ded ds2 b1) (if bool then a1:disc else disc))
-                    where bool = a1 == a2 && b1 == b2
-                assum (Ded [Ded ds1 (Quan Exists x a), Ded ds2 b1] b2) disc =
-                        (assum (Ded ds1 (Quan Exists x a)) disc) `union`
-                        (assum (Ded ds2 b1) (if bool then a:disc else disc))
-                    where bool = b1 == b2 && not (null ds2)
-                assum (Ded ds _) disc = foldl step [] ds
-                    where step xs d = union xs (assum d disc)
-        --where   myFold [] prev _ = prev
-        --        myFold (d:ds) prev disc = myFold ds (prev `union` (assum d disc)) disc
+    getAssumptions d = findAssum True d []
+    
+    getDiscarded :: Deduction -> [Formula]
+    getDiscarded d = findAssum False d []
+    
+    findAssum :: Bool -> Deduction -> [Formula] -> [Formula]
+    findAssum bb (Ded [] a) disc = if bitAnd (elem a disc) bb then [] else [a]
+        where bitAnd bool mask = if mask then bool else not bool
+    findAssum bb (Ded [Ded ds1 (Bin Or a b), Ded ds2 c1, Ded ds3 c2] c3) disc =
+            (findAssum bb (Ded ds1 (Bin Or a b)) disc) `union`
+            (findAssum bb (Ded ds2 c1) (if bool then a:disc else disc)) `union`
+            (findAssum bb (Ded ds3 c2) (if bool then b:disc else disc))
+        where bool = c1 == c2 && c2 == c3
+    findAssum bb (Ded [Ded ds a] (Not b)) disc =
+        findAssum bb (Ded ds a) (if contradiction a then b:disc else disc)
+    findAssum bb (Ded [Ded ds b1] (Bin If a b2)) disc =
+        findAssum bb (Ded ds b1) (if b1 == b2 then a:disc else disc)
+    findAssum bb (Ded [Ded ds1 a1, Ded ds2 b1] (Bin Iff a2 b2)) disc =
+            (findAssum bb (Ded ds1 a1) (if bool then b1:disc else disc)) `union`
+            (findAssum bb (Ded ds2 b1) (if bool then a1:disc else disc))
+        where bool = a1 == a2 && b1 == b2
+    findAssum bb (Ded [Ded ds1 (Quan Exists x a), Ded ds2 b1] b2) disc =
+            (findAssum bb (Ded ds1 (Quan Exists x a)) disc) `union`
+            (findAssum bb (Ded ds2 b1) (if bool then a:disc else disc))
+        where bool = b1 == b2 && not (null ds2)
+    findAssum bb (Ded ds _) disc = foldl step [] ds
+        where step xs d = union xs (findAssum bb d disc)
         
     assume :: Formula -> Deduction
     assume a = Ded [] a
