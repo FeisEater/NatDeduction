@@ -161,9 +161,18 @@
         where off = if b then 3 else 0
     spaceOut _ [] = []
     
-    --alignParent :: PrintDed -> [PrintDed]
-    --alignParent PrintDed x y s [] = [PrintDed x y s []]
-    --alignParent PrintDed x y s ds = 
+    alignParent :: [PrintDed] -> [PrintDed]
+    alignParent ((PrintDed x y s ds):deds) =    let thisLength = length s
+                                                    cLength = childrenLength (map ((!!) ((PrintDed x y s ds):deds)) ds)
+                                                    offset = round ((realToFrac $ abs (thisLength - cLength)) / 2)
+                                                in  if thisLength < cLength then (PrintDed (x+offset) y s ds):deds
+                                                        else incxAt offset (head ds)
+        where incxAt xx i = let (a,b) = splitAt i ((PrintDed x y s ds):deds)
+                                inc (PrintDed x y s ds) xx = PrintDed (x+xx) y s ds
+                            in  a ++ (inc (head b) xx):(tail b)
+    
+    childrenLength ((PrintDed _ _ s _):ds) = (length s) + sum (map len ds)
+        where len (PrintDed x _ s _) = x + (length s)
     
     printDeds :: [PrintDed] -> String
     printDeds ((PrintDed x y s a):ds)
